@@ -1,5 +1,5 @@
 {
-  "engines":{
+  "engines": {
     "node": "v16.20.2"
   },
   "name": "travel",
