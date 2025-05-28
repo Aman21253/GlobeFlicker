@@ -38,6 +38,9 @@ async function main() {
   await mongoose.connect(dbUrl);
 }
 
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("DB URL:", process.env.ATLAS_DB);
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
