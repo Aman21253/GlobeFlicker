@@ -1,0 +1,253 @@
+
+<% layout("/layout/boilerplate") %>
+<style>
+.header{
+  text-align: center;
+  justify-content: center;
+  color: #087122;
+}
+/* Style for the container */
+.pay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+/* Style for the input field */
+.pay input {
+  width: 300px;              /* Set the width */
+  padding: 12px 15px;        /* Add padding for better spacing */
+  font-size: 16px;           /* Adjust font size */
+  font-family: 'Arial', sans-serif; /* Change font for better readability */
+  border: 2px solid #ccc;   /* Border color */
+  border-radius: 8px;       /* Rounded corners */
+  background-color: #f9f9f9; /* Light background */
+  transition: all 0.3s ease; /* Smooth transition on focus */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  text-align: right;         /* Align text to the right */
+}
+
+/* Focused input field (when clicked) */
+.pay input:focus {
+  border-color: #4CAF50;    /* Green border on focus */
+  background-color: #fff;   /* White background on focus */
+  box-shadow: 0 4px 6px rgba(0, 255, 0, 0.3); /* Green shadow on focus */
+  outline: none;            /* Remove default outline */
+}
+
+/* Placeholder styling */
+.pay input::placeholder {
+  color: #888;              /* Lighter color for placeholder */
+  font-style: italic;       /* Italicize placeholder text */
+}
+
+/* Read-only input styling */
+.pay input[readonly] {
+  background-color: #f0f0f0; /* Lighter background to show it's read-only */
+  cursor: not-allowed;       /* Change cursor to indicate it's non-editable */
+}
+#amount {
+  width: 200px;
+  height: 50px;
+  padding: 0 15px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  line-height: 50px; /* Ensures vertical centering */
+  border: 2px solid #ccc;
+  border-radius: 25px;
+  background-color: #f9f9f9;
+  color: #333;
+  cursor: not-allowed;
+  outline: none;
+}
+
+#amount:focus {
+  border-color: #087122;
+  background-color: #eaf4e6;
+}
+.payfinal {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .finalPay {
+    /* Button Shape & Size */
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    /* Green Gradient Background */
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+    color: white;
+
+    /* Shadow for Depth */
+    box-shadow: 0 4px 12px rgba(0, 176, 155, 0.25);
+
+    /* Hover Effects */
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 176, 155, 0.3);
+      background: linear-gradient(135deg, #00b09b, #96c93d);
+    }
+
+    /* Ripple Effect */
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+
+    &:focus:not(:active)::after {
+      animation: ripple 0.6s ease-out;
+    }
+
+    /* Active/Pressed Effect */
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(0, 176, 155, 0.3);
+    }
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(20, 20);
+      opacity: 0;
+    }
+  }
+
+
+</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Razorpay Payment</title>
+</head>
+<body>
+  <h2 class="header">Payment Gateway Integration</h2>
+  
+  <form id="payment-form">
+    <div class="pay">
+    <input type="number" id="amount" name="amount" required readonly>
+  </div>
+    <div class="payfinal">
+    <button type="button" onclick="payNow()" class="finalPay">Pay Now</button>
+  </div>
+  </form>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+
+     const urlParams = new URLSearchParams(window.location.search);
+  const total = urlParams.get('total');
+
+  // Set it inside the input field
+  if (total) {
+    document.getElementById('amount').value = total;
+  }
+    async function payNow() {
+      const amount = document.getElementById('amount').value;
+      const amountvalue = parseFloat(amount);
+      try {
+        // Create order by calling the server endpoint
+        const response = await fetch('/create-order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            amount: amountvalue * 100, // Razorpay expects amount in paise (multiply by 100)
+            currency: 'INR', 
+            receipt: 'receipt#1', 
+            notes: {} 
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create order');
+        }
+
+        const order = await response.json();
+
+        // Open Razorpay Checkout
+        const options = {
+          key: 'rzp_test_y1IcZwwlz5tfw1', // Replace with your Razorpay key_id
+          amount: order.amount,
+          currency: order.currency,
+          name: 'Agrimart',
+          description: 'Test Transaction',
+          order_id: order.id, // This is the order_id created in the backend
+          handler: function (response) {
+            fetch('/verify-payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === 'ok') {
+                window.location.href = '/payment-success';
+              } else {
+                alert('Payment verification failed');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Error verifying payment');
+            });
+          },
+          prefill: {
+            name: 'Namrata',
+            email: 'namratapatel2803@gmail.com',
+            contact: '7987602727'
+          },
+          theme: {
+            color: '#F37254'
+          }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+        
+        rzp.on('payment.failed', function (response) {
+          alert('Payment failed. Please try again.');
+          console.error(response.error);
+        });
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error processing payment: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>

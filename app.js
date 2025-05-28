@@ -19,6 +19,7 @@ const flash=require("connect-flash");
 const passport=require("passport");
 const LocalStratergy=require("passport-local");
 const User=require("./models/user.js");
+//const Razorpay = require("razorpay");
 
 const listingRouter= require("./routes/listing.js");
 const reviewRouter=require("./routes/review.js");
@@ -38,8 +39,47 @@ async function main() {
   await mongoose.connect(dbUrl);
 }
 
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("DB URL:", process.env.ATLAS_DB);
+//razorpay started
+/*const razorpay = new Razorpay({
+  key_id:process.env.RAZORPAY_KEY_ID,
+  key_secret:process.env.RAZORPAY_KEY_SECRET,
+})
+
+app.get('/payment-success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'success.html'));
+});
+app.post('/verify-payment', (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+
+  const secret = razorpay.key_secret;
+  const body = razorpay_order_id + '|' + razorpay_payment_id;
+
+  try {
+    const isValidSignature = validateWebhookSignature(body, razorpay_signature, secret);
+    if (isValidSignature) {
+      // Update the order with payment details
+      const orders = readData();
+      const order = orders.find(o => o.order_id === razorpay_order_id);
+      if (order) {
+        order.status = 'paid';
+        order.payment_id = razorpay_payment_id;
+        writeData(orders);
+      }
+      res.status(200).json({ status: 'ok' });
+      console.log("Payment verification successful");
+    } else {
+      res.status(400).json({ status: 'verification_failed' });
+      console.log("Payment verification failed");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', message: 'Error verifying payment' });
+  }
+});*/
+
+/*console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("DB URL:", process.env.ATLAS_DB);*/
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -114,6 +154,10 @@ app.use("/",userRouter);
 app.get("/about",(req,res)=>{
   res.render('listings/about.ejs');
 });
+
+/*app.get('/payment',(req,res) => {
+  res.render('./listing/payment');
+})*/
 
 app.all("*",(req,res,next)=>{
   next(new ExpressError(404,"Page not found"));
